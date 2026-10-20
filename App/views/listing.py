@@ -8,7 +8,8 @@ from App.controllers import (
     get_staff,
     get_game,
     get_customer,
-    get_listing
+    get_listing,
+    sell_listing  # <-- Added this import
 )
 
 listing_views = Blueprint('listing_views', __name__, template_folder='../templates')
@@ -45,3 +46,15 @@ def delist_action(listingId):
             return jsonify({"message": f"listing - {listing.listingId} delisted"})
         return jsonify({"error": "listing not created bad id"}), 400
     return jsonify({"error": "User not authorized to perform this action"}), 403
+
+# --- NEW ROUTE FOR TUTORIAL 5 (Question 2) ---
+@listing_views.route('/listing/<int:listing_id>', methods=['PUT', 'UPDATE'])
+@jwt_required()
+def sell_listing_action(listing_id):
+    # Get the ID of the currently logged-in user from the JWT
+    current_user_id = get_jwt_identity()
+    
+    # Call the controller function
+    response, status_code = sell_listing(listing_id, current_user_id)
+    
+    return jsonify(response), status_code

@@ -51,3 +51,28 @@ def get_listing(id):
 
 def get_all_listings():
     return Listing.query.all()
+
+# --- NEW FUNCTION FOR TUTORIAL 5 ---
+def sell_listing(listingId, user_identity):
+    listing = Listing.query.get(listingId)
+    
+    if not listing:
+        return {"error": "Listing not found"}, 404
+    
+    # Look up the user using the username string from the JWT
+    from App.models import User
+    user = User.query.filter_by(username=user_identity).first()
+    if not user:
+        return {"error": "User not found"}, 401
+
+    # FIX: Use ownerId, not userId
+    if listing.ownerId != user.id:
+        return {"error": "Not authorized to sell this listing"}, 403
+        
+    try:
+        db.session.delete(listing)
+        db.session.commit()
+        return {"message": "listing removed from customer"}, 200
+    except Exception as e:
+        db.session.rollback()
+        return {"error": str(e)}, 500
